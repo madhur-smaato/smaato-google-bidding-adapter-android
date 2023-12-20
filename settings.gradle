@@ -1,0 +1,3 @@
+
+rootProject.name = "SmaatoGoogleMediationAdapter"
+include ':app'

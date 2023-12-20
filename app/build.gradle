@@ -1,0 +1,36 @@
+apply plugin: "com.android.library"
+apply plugin: "maven-publish"
+def smaatoSdkVersion = "22.5.1"
+def googleSdkVersion = "22.6.0"
+def adapterVersion = googleSdkVersion+".0"
+android {
+    namespace 'com.smaato.sdk.adapters.google'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.smaato.sdk.adapters.google"
+        minSdk 16
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+        buildConfigField 'String', 'ADAPTER_VERSION', "\"${adapterVersion}\""
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+}
+
+dependencies {
+    implementation ("com.smaato.android.sdk:smaato-sdk:${smaatoSdkVersion}")
+    implementation ("com.smaato.android.sdk:smaato-sdk-in-app-bidding:${smaatoSdkVersion}")
+    implementation ("com.google.android.gms:play-services-ads:${googleSdkVersion}")
+}

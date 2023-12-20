@@ -1,0 +1,135 @@
+import org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependency
+
+/*
+ * Copyright 2019 Smaato Inc.
+ * Licensed under the Smaato SDK License Agreement
+ * https://www.smaato.com/sdk-license-agreement/
+ */
+
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+//*****NOTE******
+// DO NOT PUT HERE ANY CONFIG RELATED TO APP-TEST MODULE
+
+def ADAPTER_VERSION = "22.6.0.0"
+def NEXUS_URL = getNexusUrl()
+def versionName = buildVersionName(ADAPTER_VERSION)
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+
+    }
+
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:7.1.3'
+        classpath 'com.google.gms:google-services:4.3.15'
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+allprojects {
+    project.group = 'com.smaato.android.sdk'
+    project.version = versionName
+    repositories {
+        google()
+        mavenCentral()
+        mavenLocal()
+        maven {
+            url "https://s3.amazonaws.com/smaato-sdk-releases/"
+        }
+        maven {
+            url "https://s3.amazonaws.com/smaato-android-sdk/"
+        }
+        maven {
+            name "SmaatoNexus"
+            url "https://nexus.smaato.net/repository/releases"
+            credentials {
+                username "deployment"
+                password "dep123"
+            }
+        }
+    }
+}
+
+subprojects { project ->
+    apply plugin: 'maven-publish'
+    publishing {
+
+        repositories {
+            maven {
+                name "Public"
+                url "s3://smaato-sdk-releases/"
+                authentication {
+                    awsIm(AwsImAuthentication)
+                }
+            }
+            maven {
+                name "MAX"
+                url "s3://smaato-sdk-max-releases/"
+                authentication {
+                    awsIm(AwsImAuthentication)
+                }
+            }
+            maven {
+                name "SmaatoNexus"
+                url NEXUS_URL
+                credentials {
+                    username 'deployment'
+                    password 'dep123'
+                }
+            }
+        }
+    }
+}
+
+static def getNexusUrl() {
+    def branch = getBranchName()
+    if (branch.startsWith('release/')) {
+        return "https://nexus.smaato.net/repository/releases"
+    } else {
+        return "https://nexus.smaato.net/repository/snapshots"
+    }
+}
+
+static def getBranchName() {
+    return System.getenv("BRANCH_NAME") as String ?: "git rev-parse --abbrev-ref HEAD".execute().text.trim()
+}
+apply plugin: 'distribution'
+
+distributions {
+    release {
+        contents { dist ->
+            subprojects { project ->
+                if (!project.file(".distexclude").exists()) {
+                    project.pluginManager.withPlugin("aar-artifact") {
+                        project.afterEvaluate {
+                            dist.from(project.tasks.named("bundleReleaseAar").get().outputs.files)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+static def buildVersionName(version) {
+    def branch = getBranchName()
+    if (branch.startsWith("release/") || branch.startsWith("release-max/")) {
+        return version
+    }
+    if (branch.startsWith('feature/')) {
+        return "${version}-${branch - 'feature/'}-${buildSuffix()}-SNAPSHOT"
+    }
+    return "$version-${branch}-${buildSuffix()}-SNAPSHOT"
+}
+
+static def buildSuffix() {
+    return System.getenv("BUILD_NUMBER") as String ?: "local-build"
+}
+
+
+
+
