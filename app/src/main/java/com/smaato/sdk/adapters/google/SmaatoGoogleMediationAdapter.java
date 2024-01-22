@@ -16,6 +16,9 @@ import com.google.android.gms.ads.mediation.MediationConfiguration;
 import com.google.android.gms.ads.mediation.MediationInterstitialAd;
 import com.google.android.gms.ads.mediation.MediationInterstitialAdCallback;
 import com.google.android.gms.ads.mediation.MediationInterstitialAdConfiguration;
+import com.google.android.gms.ads.mediation.MediationRewardedAd;
+import com.google.android.gms.ads.mediation.MediationRewardedAdCallback;
+import com.google.android.gms.ads.mediation.MediationRewardedAdConfiguration;
 import com.google.android.gms.ads.mediation.rtb.RtbAdapter;
 import com.google.android.gms.ads.mediation.rtb.RtbSignalData;
 import com.google.android.gms.ads.mediation.rtb.SignalCallbacks;
@@ -95,6 +98,14 @@ public class SmaatoGoogleMediationAdapter extends RtbAdapter {
         SmaatoInterstitialAdRenderer interstitialAdRenderer = new SmaatoInterstitialAdRenderer(mediationInterstitialAdConfiguration, callback);
         interstitialAdRenderer.render();
     }
+
+    @Override
+    public void loadRewardedAd(@NonNull MediationRewardedAdConfiguration mediationRewardedAdConfiguration, @NonNull MediationAdLoadCallback<MediationRewardedAd, MediationRewardedAdCallback> callback) {
+        SmaatoRewardedAdRenderer smaatoRewardedAdRenderer = new SmaatoRewardedAdRenderer(mediationRewardedAdConfiguration, callback);
+        smaatoRewardedAdRenderer.render();
+    }
+
+
 
     private void initialiseSdk(List<MediationConfiguration> list, Context context) {
         this.context = context;
